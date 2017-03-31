@@ -2,6 +2,8 @@
 set_time_limit(0);
 $startTime = microtime(true) * 1000;
 
+include_once "./zhihu.spider.config.php";
+
 // 设置从哪个用户开始抓取。
 const START_USER = "flowfire";
 
@@ -13,8 +15,8 @@ array_push($userList, START_USER);
 $userTokens = Array();
 array_push($userTokens, START_USER);
 
-// COOKIE 存放位置
-const COOKIE = '';
+// 维护一个用户列表，如果用户信息已经被插入数据库，则跳过。
+$userSaved = Array();
 
 // HTTPHEADER ，理论上不需要修改
 const HEADER = Array(
@@ -63,8 +65,17 @@ function getUser($token = START_USER) {
 
 // 处理抓取到的用户数据
 function saveData($datas){
+
     global $db;
+    global $userSaved;
+
     while ($data = array_shift($datas)) {
+
+        $id = $data['id'];
+        if (in_array($id, $userSaved)){
+            continue;
+        }
+
         $keys = [];
         $values = [];
         foreach ($data as $key => $value){
@@ -79,18 +90,13 @@ function saveData($datas){
         $values = '('.implode(',',$values).')';
         $sql = "INSERT INTO zhihu_user $keys VALUES $values";
         @$db->query($sql);
-
+        array_push($userSaved, $id);
     }
 }
 
-// 连接数据库
-const MYSQL_SERVER = "localhost";
-const MYSQL_USER = "root";
-const MYSQL_PASSWORD = "";
 $db = new mysqli(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD);
 $db->query('SET NAMES UTF8');
 $db->select_db('zhihu');
-
 
 //循环处理用户
 while ($user = array_shift($userList)){

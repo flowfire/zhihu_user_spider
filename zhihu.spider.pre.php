@@ -1,8 +1,5 @@
 <?php
-
-const MYSQL_SERVER = "localhost";
-const MYSQL_USER = "root";
-const MYSQL_PASSWORD = "";
+include_once "./zhihu.spider.config.php";
 
 // 为知乎用户抓取信息新建数据库
 
